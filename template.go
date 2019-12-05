@@ -52,6 +52,11 @@ func (t *Template) Name() string {
 	return t.tmpl.Name()
 }
 
+//Retrieve Returns the template for the given function
+func (t *Template) Retrieve() *template.Template {
+	return t.tmpl
+}
+
 // Funcs is a proxy to the underlying template's Funcs function
 func (t *Template) Funcs(funcMap FuncMap) *Template {
 	return t.replaceTmpl(t.tmpl.Funcs(template.FuncMap(funcMap)))
