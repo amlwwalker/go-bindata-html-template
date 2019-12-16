@@ -82,6 +82,39 @@ func (t *Template) Parse(filename string) (*Template, error) {
 	return t.replaceTmpl(newTmpl), nil
 }
 
+// RetrieveForParse is a helper function to allow files to be retrieved for
+// combining into a template when they don't share the same Asset function.
+// the returning map can be used to create the final template.
+//Once you have all of these, you can create a large map and then create the template from the bytes
+func RetrieveForParse(fn AssetFunc, filenames ...string) (map[string][]byte, error) {
+	mapping := make(map[string][]byte)
+	for _, filename := range filenames {
+		fmt.Println("filename ", filename)
+		tmplBytes, err := fn(filename)
+		if err != nil {
+			return mapping, err
+		}
+		mapping[filename] = tmplBytes
+	}
+	return mapping, nil
+}
+
+// AppendBytesToFiles attaches a byte array, to the beginning of a template. This can probably be
+// exposed to errors (non template based byte arrays), however for now this is useful for combining templates
+// before they are parsed as html/templates
+func (t *Template) AppendBytesToFiles(fileBytes []byte, layout string) (*Template, error) {
+	tmplBytes, err := t.file(layout)
+	if err != nil {
+		return nil, err
+	}
+	fileBytes = append(fileBytes, tmplBytes...)
+	newTmpl, err := t.tmpl.Parse(string(fileBytes))
+	if err != nil {
+		return nil, err
+	}
+	return t.replaceTmpl(newTmpl), nil
+}
+
 // ParseFiles looks up all of the filenames in the underlying Asset store,
 // concatenates the file contents together, then calls the underlying template's
 // Parse function with the result. returns an error if any of the files
